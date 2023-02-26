@@ -47,32 +47,33 @@ public class BtService extends IntentService {
             printTest();
         } else if (intent.getAction().equals(PrintUtil.ACTION_PRINT_TEST_TWO)) {
             printTesttwo(3);
-        }else if (intent.getAction().equals(PrintUtil.ACTION_PRINT_BITMAP)) {
+        } else if (intent.getAction().equals(PrintUtil.ACTION_PRINT_BITMAP)) {
             printBitmapTest();
         }
 
     }
 
     private void printTest() {
-            PrintOrderDataMaker printOrderDataMaker = new PrintOrderDataMaker(this,"", PrinterWriter58mm.TYPE_58, PrinterWriter.HEIGHT_PARTING_DEFAULT);
-            ArrayList<byte[]> printData = (ArrayList<byte[]>) printOrderDataMaker.getPrintData(PrinterWriter58mm.TYPE_58);
-            PrintQueue.getQueue(getApplicationContext()).add(printData);
+        PrintOrderDataMaker printOrderDataMaker = new PrintOrderDataMaker
+                (this, "", PrinterWriter58mm.TYPE_58, PrinterWriter.HEIGHT_PARTING_DEFAULT);
+        ArrayList<byte[]> printData = (ArrayList<byte[]>) printOrderDataMaker.getPrintData(PrinterWriter58mm.TYPE_58);
+        PrintQueue.getQueue(getApplicationContext()).add(printData);
 
     }
 
     /**
      * 打印几遍
+     *
      * @param num
      */
-  private void printTesttwo(int num) {
+    private void printTesttwo(int num) {
         try {
             ArrayList<byte[]> bytes = new ArrayList<byte[]>();
             for (int i = 0; i < num; i++) {
                 String message = "蓝牙打印测试\n蓝牙打印测试\n蓝牙打印测试\n\n";
                 bytes.add(GPrinterCommand.reset);
                 bytes.add(message.getBytes("gbk"));
-                bytes.add(GPrinterCommand
-                        .print);
+                bytes.add(GPrinterCommand.print);
                 bytes.add(GPrinterCommand.print);
                 bytes.add(GPrinterCommand.print);
             }
@@ -92,8 +93,7 @@ public class BtService extends IntentService {
     private void printBitmapTest() {
         BufferedInputStream bis;
         try {
-            bis = new BufferedInputStream(getAssets().open(
-                    "icon_empty_bg.bmp"));
+            bis = new BufferedInputStream(getAssets().open("icon_empty_bg.bmp"));
         } catch (Exception e) {
             e.printStackTrace();
             return;

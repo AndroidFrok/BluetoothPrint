@@ -3,8 +3,10 @@ package com.xmwdkk.boothprint;
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
@@ -23,20 +25,21 @@ import de.greenrobot.event.EventBus;
  */
 public class MainActivity extends BluetoothActivity implements View.OnClickListener {
 
-     TextView tv_bluename;
-     TextView tv_blueadress;
-      boolean mBtEnable = true;
-    int PERMISSION_REQUEST_COARSE_LOCATION=2;
+    TextView tv_bluename;
+    TextView tv_blueadress;
+    boolean mBtEnable = true;
+    int PERMISSION_REQUEST_COARSE_LOCATION = 2;
     /**
      * bluetooth adapter
      */
     BluetoothAdapter mAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        tv_bluename =findViewById(R.id.tv_bluename);
-        tv_blueadress =findViewById(R.id.tv_blueadress);
+        tv_bluename = findViewById(R.id.tv_bluename);
+        tv_blueadress = findViewById(R.id.tv_blueadress);
         findViewById(R.id.button4).setOnClickListener(this);
         findViewById(R.id.button5).setOnClickListener(this);
         findViewById(R.id.button6).setOnClickListener(this);
@@ -56,8 +59,6 @@ public class MainActivity extends BluetoothActivity implements View.OnClickListe
     }
 
 
-
-
     @Override
     public void btStatusChanged(Intent intent) {
         super.btStatusChanged(intent);
@@ -65,23 +66,34 @@ public class MainActivity extends BluetoothActivity implements View.OnClickListe
     }
 
 
-
     @Override
     public void onClick(View view) {
-        switch (view.getId()){
+        switch (view.getId()) {
             case R.id.button4:
-             startActivity(new Intent(MainActivity.this,SearchBluetoothActivity.class));
+                startActivity(new Intent(MainActivity.this, SearchBluetoothActivity.class));
                 break;
             case R.id.button5:
-                if (TextUtils.isEmpty(AppInfo.btAddress)){
-                    ToastUtil.showToast(MainActivity.this,"请连接蓝牙...");
-                    startActivity(new Intent(MainActivity.this,SearchBluetoothActivity.class));
-                }else {
-                    if ( mAdapter.getState()==BluetoothAdapter.STATE_OFF ){//蓝牙被关闭时强制打开
-                         mAdapter.enable();
-                        ToastUtil.showToast(MainActivity.this,"蓝牙被关闭请打开...");
-                    }else {
-                        ToastUtil.showToast(MainActivity.this,"打印测试...");
+                if (TextUtils.isEmpty(AppInfo.btAddress)) {
+                    ToastUtil.showToast(MainActivity.this, "请连接蓝牙...");
+                    startActivity(new Intent(MainActivity.this, SearchBluetoothActivity.class));
+                } else {
+                    if (mAdapter.getState() == BluetoothAdapter.STATE_OFF) {//蓝牙被关闭时强制打开
+                        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                            // TODO: Consider calling
+                            //    ActivityCompat#requestPermissions
+                            // here to request the missing permissions, and then overriding
+                            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                            //                                          int[] grantResults)
+                            // to handle the case where the user grants the permission. See the documentation
+                            // for ActivityCompat#requestPermissions for more details.
+                            finish();
+                            return;
+                        } else {
+                            mAdapter.enable();
+                        }
+                        ToastUtil.showToast(MainActivity.this, "蓝牙被关闭请打开...");
+                    } else {
+                        ToastUtil.showToast(MainActivity.this, "打印测试...");
                         Intent intent = new Intent(getApplicationContext(), BtService.class);
                         intent.setAction(PrintUtil.ACTION_PRINT_TEST);
                         startService(intent);
@@ -90,22 +102,22 @@ public class MainActivity extends BluetoothActivity implements View.OnClickListe
                 }
                 break;
             case R.id.button6:
-                if (TextUtils.isEmpty(AppInfo.btAddress)){
-                    ToastUtil.showToast(MainActivity.this,"请连接蓝牙...");
-                    startActivity(new Intent(MainActivity.this,SearchBluetoothActivity.class));
-                }else {
-                    ToastUtil.showToast(MainActivity.this,"打印测试...");
+                if (TextUtils.isEmpty(AppInfo.btAddress)) {
+                    ToastUtil.showToast(MainActivity.this, "请连接蓝牙...");
+                    startActivity(new Intent(MainActivity.this, SearchBluetoothActivity.class));
+                } else {
+                    ToastUtil.showToast(MainActivity.this, "打印测试...");
                     Intent intent2 = new Intent(getApplicationContext(), BtService.class);
                     intent2.setAction(PrintUtil.ACTION_PRINT_TEST_TWO);
                     startService(intent2);
 
                 }
-                case R.id.button:
-                if (TextUtils.isEmpty(AppInfo.btAddress)){
-                    ToastUtil.showToast(MainActivity.this,"请连接蓝牙...");
-                    startActivity(new Intent(MainActivity.this,SearchBluetoothActivity.class));
-                }else {
-                    ToastUtil.showToast(MainActivity.this,"打印图片...");
+            case R.id.button:
+                if (TextUtils.isEmpty(AppInfo.btAddress)) {
+                    ToastUtil.showToast(MainActivity.this, "请连接蓝牙...");
+                    startActivity(new Intent(MainActivity.this, SearchBluetoothActivity.class));
+                } else {
+                    ToastUtil.showToast(MainActivity.this, "打印图片...");
                     Intent intent2 = new Intent(getApplicationContext(), BtService.class);
                     intent2.setAction(PrintUtil.ACTION_PRINT_BITMAP);
                     startService(intent2);
@@ -116,6 +128,7 @@ public class MainActivity extends BluetoothActivity implements View.OnClickListe
         }
 
     }
+
     /**
      * handle printer message
      *
@@ -123,13 +136,13 @@ public class MainActivity extends BluetoothActivity implements View.OnClickListe
      */
     public void onEventMainThread(PrintMsgEvent event) {
         if (event.type == PrinterMsgType.MESSAGE_TOAST) {
-            ToastUtil.showToast(MainActivity.this,event.msg);
+            ToastUtil.showToast(MainActivity.this, event.msg);
         }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        EventBus.getDefault().register(MainActivity.this);
+        EventBus.getDefault().unregister(MainActivity.this);
     }
 }

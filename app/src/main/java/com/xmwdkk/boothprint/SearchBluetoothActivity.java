@@ -1,12 +1,15 @@
 package com.xmwdkk.boothprint;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -36,7 +39,7 @@ public class SearchBluetoothActivity extends BluetoothActivity implements Adapte
     private SearchBleAdapter searchBleAdapter;
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState ) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_searchbooth);
         lv_searchblt = (ListView) findViewById(R.id.lv_searchblt);
@@ -52,8 +55,6 @@ public class SearchBluetoothActivity extends BluetoothActivity implements Adapte
         tv_title.setOnClickListener(this);
         tv_summary.setOnClickListener(this);
     }
-
-
 
 
     private void init() {
@@ -77,24 +78,37 @@ public class SearchBluetoothActivity extends BluetoothActivity implements Adapte
                 tv_summary.setText(blueAddress);
             }
         }
-}
+    }
+
     @Override
     public void btStatusChanged(Intent intent) {
 
-        if ( bluetoothAdapter.getState()==BluetoothAdapter.STATE_OFF ){//蓝牙被关闭时强制打开
+        if (bluetoothAdapter.getState() == BluetoothAdapter.STATE_OFF) {//蓝牙被关闭时强制打开
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
+            }
             bluetoothAdapter.enable();
         }
-        if ( bluetoothAdapter.getState()==BluetoothAdapter.STATE_ON ){//蓝牙打开时搜索蓝牙
+        if (bluetoothAdapter.getState() == BluetoothAdapter.STATE_ON) {//蓝牙打开时搜索蓝牙
             searchDeviceOrOpenBluetooth();
         }
     }
-    private String getPrinterName(){
+
+    private String getPrinterName() {
         String dName = PrintUtil.getDefaultBluetoothDeviceName(this);
         if (TextUtils.isEmpty(dName)) {
             dName = "未知设备";
         }
         return dName;
     }
+
     private String getPrinterName(String dName) {
         if (TextUtils.isEmpty(dName)) {
             dName = "未知设备";
@@ -121,6 +135,7 @@ public class SearchBluetoothActivity extends BluetoothActivity implements Adapte
         super.onStop();
         BtUtil.cancelDiscovery(bluetoothAdapter);
     }
+
     @Override
     public void btStartDiscovery(Intent intent) {
         tv_title.setText("正在搜索蓝牙设备…");
@@ -132,15 +147,16 @@ public class SearchBluetoothActivity extends BluetoothActivity implements Adapte
         tv_title.setText("搜索完成");
         tv_summary.setText("点击重新搜索");
     }
+
     @Override
     public void btFoundDevice(Intent intent) {
         BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-        Log.d("1","!");
+        Log.d("1", "!");
         if (null != bluetoothAdapter && device != null) {
             searchBleAdapter.addDevices(device);
             String dName = device.getName() == null ? "未知设备" : device.getName();
-            Log.d("未知设备",dName);
-            Log.d("1","!");
+            Log.d("未知设备", dName);
+            Log.d("1", "!");
         }
     }
 
@@ -148,6 +164,16 @@ public class SearchBluetoothActivity extends BluetoothActivity implements Adapte
     public void btBondStatusChange(Intent intent) {
         super.btBondStatusChange(intent);
         BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
         switch (device.getBondState()) {
             case BluetoothDevice.BOND_BONDING://正在配对
                 Log.d("BlueToothTestActivity", "正在配对......");
@@ -173,6 +199,16 @@ public class SearchBluetoothActivity extends BluetoothActivity implements Adapte
         if (null == bluetoothDevice) {
             return;
         }
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
         new AlertDialog.Builder(this)
                 .setTitle("绑定" + getPrinterName(bluetoothDevice.getName()) + "?")
                 .setMessage("点击确认绑定蓝牙设备")
@@ -189,6 +225,16 @@ public class SearchBluetoothActivity extends BluetoothActivity implements Adapte
                             BtUtil.cancelDiscovery(bluetoothAdapter);
 
 
+                            if (ActivityCompat.checkSelfPermission(SearchBluetoothActivity.this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                                // TODO: Consider calling
+                                //    ActivityCompat#requestPermissions
+                                // here to request the missing permissions, and then overriding
+                                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                //                                          int[] grantResults)
+                                // to handle the case where the user grants the permission. See the documentation
+                                // for ActivityCompat#requestPermissions for more details.
+                                return;
+                            }
                             if (bluetoothDevice.getBondState() == BluetoothDevice.BOND_BONDED) {
                                 connectBlt(bluetoothDevice);
                             } else {
@@ -201,15 +247,12 @@ public class SearchBluetoothActivity extends BluetoothActivity implements Adapte
                             e.printStackTrace();
                             PrintUtil.setDefaultBluetoothDeviceAddress(getApplicationContext(), "");
                             PrintUtil.setDefaultBluetoothDeviceName(getApplicationContext(), "");
-                            ToastUtil.showToast(SearchBluetoothActivity.this,"蓝牙绑定失败,请重试");
+                            ToastUtil.showToast(SearchBluetoothActivity.this, "蓝牙绑定失败,请重试");
                         }
                     }
                 })
                 .create()
                 .show();
-
-
-
 
 
     }
@@ -226,12 +269,22 @@ public class SearchBluetoothActivity extends BluetoothActivity implements Adapte
         init();
         searchBleAdapter.notifyDataSetChanged();
         PrintUtil.setDefaultBluetoothDeviceAddress(getApplicationContext(), bluetoothDevice.getAddress());
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
         PrintUtil.setDefaultBluetoothDeviceName(getApplicationContext(), bluetoothDevice.getName());
     }
 
     @Override
     public void onClick(View view) {
-        switch (view.getId()){
+        switch (view.getId()) {
             case R.id.tv_title:
 
                 break;
